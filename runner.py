@@ -4,19 +4,23 @@ from simulator.game_state import GameState
 from simulator.simulate import Simulator
 
 def simulate_full_game(
+    home_elo_rating,
+    away_elo_rating,
+    temperature,
+    wind_speed,
+    precipitation,
+    elevation,
+    home_division,
+    home_is_power_five,
+    away_division,
+    away_is_power_five,
     n_simulations=1000,
-    home_elo_rating=None,
-    away_elo_rating=None,
-    temperature=None,
-    wind_speed=None,
-    precipitation=None,
-    elevation=None,
 ) -> np.ndarray:
     """
-    Simulates a full game of college football based on the provided game state parameters.
+    Simulates a full game of college football based on the provided game state 
+    arameters.
 
     Args:
-        n_simulations (int): Number of simulations to run for averaging probabilities.
         home_elo_rating (float): ELO rating of the home team.
         home_timeouts (int): Number of timeouts remaining for the home team.
         away_score (int): Current score of the away team.
@@ -30,6 +34,12 @@ def simulate_full_game(
         wind_speed (float): Wind speed in miles per hour.
         precipitation (float): Precipitation in inches.
         elevation (float): Elevation in feet above sea level.
+        home_division (str): Division of the home team (e.g., "FBS", "FCS").
+        home_is_power_five (bool): Whether the home team is a Power Five team.
+        away_division (str): Division of the away team (e.g., "FBS", "FCS").
+        away_is_power_five (bool): Whether the away team is a Power Five team.
+        n_simulations (int): Number of simulations to run.
+
     
     Returns:
         np.ndarray: A 2D array of win, tie, loss probabilities for the home team
@@ -50,7 +60,12 @@ def simulate_full_game(
         temperature=temperature,
         wind_speed=wind_speed,
         precipitation=precipitation,
-        elevation=elevation
+        elevation=elevation,
+        home_division=home_division,
+        home_is_power_five=home_is_power_five,
+        away_division=away_division,
+        away_is_power_five=away_is_power_five,
+        clock_rolling=False  # Clock starts rolling after kickoff
     )
     
     outcomes = []
