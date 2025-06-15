@@ -7,5 +7,9 @@ simulate_full_game(
     temperature=70.0,
     wind_speed=5.0,
     precipitation=0.0,
+    home_division="FBS",
+    home_is_power_five=True,
+    away_division="FBS",
+    away_is_power_five=False,
     elevation=500.0
 )

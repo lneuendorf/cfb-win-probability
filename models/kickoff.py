@@ -17,7 +17,8 @@ class Kickoff():
 
     def predict_kickoff_ytg(self) -> Tuple[int, int]:
         """
-        Predicts the yards to goal (YTG) after a kickoff based on historical rates.
+        Predicts the yards to goal (YTG) after a kickoff based on historical 
+        rates.
         
         Returns:
             tuple: (yards_to_goal, seconds_used)
