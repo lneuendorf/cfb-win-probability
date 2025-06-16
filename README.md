@@ -4,6 +4,7 @@ model limitations
 - does not account for proabiltiy of penalties
     - does account for pentalty yards indirectly in some models (e.g. punt or kickoff return yardline)
 - lacking post-snap penalty modeling
+- lacking some team specific tendency features (historical onside kick counts, go rates...)
 
 
 Todo
