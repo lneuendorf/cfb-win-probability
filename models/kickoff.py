@@ -9,7 +9,7 @@ receiving_team_ytg_bins = pd.read_parquet(
 class Kickoff():
     def __init__(self):
         df = pd.read_parquet(
-            'models/raw/kickoff_binned_probabilities.parquet'
+            'models/raw/kickoffs/kickoff_binned_probabilities.parquet'
         )
         self.probas = df['empirical_proba'].values
         self.time_dict = df['seconds_used'].to_dict()

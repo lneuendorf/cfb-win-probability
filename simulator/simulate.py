@@ -47,10 +47,7 @@ class Simulator:
                 self._extra_point_or_two_point_conversion()
             else:
                 raise ValueError(f"Unknown action: {self.next_action}")
-            
-
-            self._extra_point_or_two_point_conversion()
-        
+                    
     def _coin_toss(self):
         self.game_state['possession'] = np.random.choice(
             ['home', 'away'],
