@@ -72,11 +72,10 @@ class Simulator:
         offense = self.game_state['possession']
         defense = 'away' if offense == 'home' else 'home'
         proba_attempt_xp = self.try_attempt_model.predict_xp_attempt_proba(
-            score_diff=(
-                self.game_state[offense]['score'] - 
-                self.game_state[defense]['score']
-            ),
+            score_diff=self.game_state['score_diff'],
             seconds_remaining=self.game_state['seconds_remaining'],
+            diff_time_ratio=self.game_state['diff_time_ratio'],
+            pct_game_played=self.game_state['pct_game_played']
         )
 
         if np.random.rand() < proba_attempt_xp:

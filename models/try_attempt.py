@@ -11,6 +11,8 @@ class TryAttemptDecision:
         self,
         score_diff: int,
         seconds_remaining: float,
+        diff_time_ratio: float,
+        pct_game_played: float,
     ):
         """
         Predicts the probability of attempting an extra point (XP) based on game 
@@ -19,19 +21,18 @@ class TryAttemptDecision:
         Args:
             score_diff (int): Score difference before the extra point attempt.
             seconds_remaining (float): Seconds remaining in the game.
+            diff_time_ratio (float): e^(4 * (3600 - sec_left) / 3600) * score_diff
+            pct_game_played (float): Percentage of the game played.
 
         Returns:
             float: Probability of attempting an extra point.
         """
-        diff_time_ratio = (
-            score_diff * np.exp(4 * (3600 - seconds_remaining) / 3600)
-        )
         two_point_to_tie = int(np.where(score_diff == -2, 1, 0))
         two_point_to_lead = int(np.where(score_diff == -1, 1, 0))
         need_two_pt_to_tie = int(self._special_tie_condition(score_diff))
         data = pd.DataFrame([{
             "score_diff_before": score_diff,
-            "pct_game_played": (3600 - seconds_remaining) / 3600,
+            "pct_game_played": pct_game_played,
             "diff_time_ratio": diff_time_ratio,
             "two_point_to_tie": two_point_to_tie,
             "two_point_to_lead": two_point_to_lead,

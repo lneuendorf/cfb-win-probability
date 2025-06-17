@@ -6,6 +6,10 @@ model limitations
 - lacking post-snap penalty modeling
 - lacking some team specific tendency features (historical onside kick counts, go rates...)
 
+metric ideas:
+- sharp ration adapted to this context, to capture risk and expected value in one metric.
+    football_sharpe = E[WP_after - WP_baseline] / std_dev_WP_after where WP_baseline is the avg eWP across all decisions
+
 
 Todo
 - create tests of each of the model functions to enusre they are returning logical probabilites / values
