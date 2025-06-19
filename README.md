@@ -13,3 +13,9 @@ metric ideas:
 
 Todo
 - create tests of each of the model functions to enusre they are returning logical probabilites / values
+
+
+#TODO
+1. create seconds used for each proba table for onside kicks
+2. put code into simulator
+3. create unit tests of models

@@ -55,9 +55,20 @@ class Simulator:
         )
 
     def _kickoff(self):
-        ytg, seconds_used = self.kickoff_model.predict_kickoff_ytg()
+        '''
+        Simulates a kickoff event in the game. This handles for the probability
+        of an onside kick, the yards to goal (ytg) post kickoff, and
+        whether the receiving team recovers the kickoff.
+        '''
+        ytg, seconds_used, recovered_by = self.kickoff_model.predict_kickoff_ytg()
         self.game_state['seconds_remaining'] -= seconds_used
         self.game_state['clock_rolling'] = False
+
+        # Flip possession if the defense (recieving team) recovers the kickoff
+        if recovered_by == 'defense':
+            self.game_state['possession'] = (
+                'away' if self.game_state['possession'] == 'home' else 'home'
+            )
 
         if ytg == 0: # kick-off TD return
             self.game_state[self.game_state['possession']]['score'] += 6
@@ -66,7 +77,7 @@ class Simulator:
             self.game_state['yards_to_goal'] = ytg
             self.game_state['down'] = 1
             self.game_state['distance'] = 10
-            self.next_action = "play"
+            self.next_action = "kickoff"
 
     def _extra_point_or_two_point_conversion(self):
         offense = self.game_state['possession']
