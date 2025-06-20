@@ -102,7 +102,7 @@ class TwoPointConversion:
     def __init__(self):
         self.probas = (
             pd.read_parquet(
-                'models/raw/try_attempt/extra_point_success_rates.parquet'
+                'models/raw/try_attempt/two_point_success_rates.parquet'
             )
             .assign(
                 division_matchup=(

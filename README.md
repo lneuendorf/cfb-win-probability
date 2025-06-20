@@ -11,11 +11,6 @@ metric ideas:
     football_sharpe = E[WP_after - WP_baseline] / std_dev_WP_after where WP_baseline is the avg eWP across all decisions
 
 
-Todo
-- create tests of each of the model functions to enusre they are returning logical probabilites / values
-
 
 #TODO
-1. create seconds used for each proba table for onside kicks
-2. put code into simulator
-3. create unit tests of models
+1. Create tests for each model that simulate based on game state and inspect the output distribution, confirming that it aligns with expectation.

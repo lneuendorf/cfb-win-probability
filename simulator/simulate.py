@@ -60,7 +60,12 @@ class Simulator:
         of an onside kick, the yards to goal (ytg) post kickoff, and
         whether the receiving team recovers the kickoff.
         '''
-        ytg, seconds_used, recovered_by = self.kickoff_model.predict_kickoff_ytg()
+        ytg, seconds_used, recovered_by = self.kickoff_model.predict_kickoff_ytg(
+            score_diff=self.game_state['score_diff'],
+            pct_game_played=self.game_state['pct_game_played'],
+            diff_time_ratio=self.game_state['diff_time_ratio'],
+            offense_timeouts=self.game_state[self.game_state['possession']]['timeouts'],
+        )
         self.game_state['seconds_remaining'] -= seconds_used
         self.game_state['clock_rolling'] = False
 
@@ -77,7 +82,7 @@ class Simulator:
             self.game_state['yards_to_goal'] = ytg
             self.game_state['down'] = 1
             self.game_state['distance'] = 10
-            self.next_action = "kickoff"
+            self.next_action = "play"
 
     def _extra_point_or_two_point_conversion(self):
         offense = self.game_state['possession']

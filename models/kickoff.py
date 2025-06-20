@@ -96,7 +96,12 @@ class Kickoff():
         Returns:
             float: Probability of the kickoff being an onside kick.
         """
-        data = 2
+        data = pd.DataFrame([{
+            "score_diff": score_diff,
+            "pct_game_played": pct_game_played,
+            "diff_time_ratio": diff_time_ratio,
+            "offense_timeouts": offense_timeouts
+        }])
         
         dmatrix = xgb.DMatrix(data)
         proba = self.model.predict(dmatrix)[0]
@@ -114,8 +119,8 @@ class Kickoff():
             str: 'offense' or 'defense' indicating the recovering team.
         """
 
-        # Historical probability of offense recovering onside kick (2013-2024)
-        P_OFFENSE_RECOVERY = 0.247913
+        # Value set referencing historical onside kick recovery rates 2013-2024
+        P_OFFENSE_RECOVERY = 0.2
         
         return np.random.choice(
             ['offense', 'defense'],
