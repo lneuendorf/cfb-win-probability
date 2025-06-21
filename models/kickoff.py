@@ -7,7 +7,7 @@ class Kickoff():
     def __init__(self):
         # Load the kickoff return PDF with empirical probabilities
         df = pd.read_parquet(
-            'models/raw/kickoffs/kickoff_binned_probabilities.parquet'
+            'models/raw/kickoff/kickoff_binned_probabilities.parquet'
         )
         self.regular_kickoff = dict(
             ytg_bins = df['receiving_team_ytg'].values,
@@ -17,7 +17,7 @@ class Kickoff():
 
         # Load the onside kickoff defense (recieving team) recovery PDF
         df = pd.read_parquet(
-            'models/raw/kickoffs/onside_kick_defense_yardline_distribution.parquet'
+            'models/raw/kickoff/onside_kick_defense_yardline_distribution.parquet'
         )
         self.onside_kickoff_defense = dict(
             ytg_bins = df.index.values,
@@ -27,7 +27,7 @@ class Kickoff():
 
         # Load the onside kickoff offense (kicking team) recovery PDF
         df = pd.read_parquet(
-            'models/raw/kickoffs/onside_kick_offense_yardline_distribution.parquet'
+            'models/raw/kickoff/onside_kick_offense_yardline_distribution.parquet'
         )
         self.onside_kickoff_offense = dict(
             ytg_bins = df.index.values,
@@ -36,7 +36,7 @@ class Kickoff():
         )
 
         # Load the model predicting if a kickoff is regular or onside
-        model_path = 'models/raw/kickoffs/onside_decision_xgb.bin'
+        model_path = 'models/raw/kickoff/onside_decision_xgb.bin'
         self.model = xgb.Booster(model_file=model_path)
 
     def predict_kickoff_ytg(

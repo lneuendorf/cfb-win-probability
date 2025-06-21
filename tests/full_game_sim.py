@@ -11,5 +11,6 @@ simulate_full_game(
     home_is_power_five=True,
     away_division="FBS",
     away_is_power_five=False,
-    elevation=500.0
+    elevation=500.0,
+    neutral_site=False,
 )

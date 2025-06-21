@@ -22,8 +22,8 @@ class GameState:
         wind_speed: float,
         precipitation: float,
         elevation: float,
+        neutral_site: bool = False,
         clock_rolling: bool = False,
-        neutral_site: bool = False
     ):
         # Core fields
         self.possession = possession
@@ -81,32 +81,51 @@ class GameState:
 
     # ----- Setters (that also update derived) -----
     def set_possession(self, value: str):
-        self.possession = value
+        if self.possession != value:
+            self.possession = value
+            self._update_score_diff()
+            self._update_diff_time_ratio()
+            self.num_plays_on_drive = 0  # Reset drive
+    def switch_possession(self):
+        if self.possession == 'home':
+            self.possession = 'away'
+        else:
+            self.possession = 'home'
         self._update_score_diff()
         self._update_diff_time_ratio()
-        self.num_plays_on_drive = 0  # Reset drive
+        self.num_plays_on_drive = 0
     def set_down(self, value: int):
         self.down = value
     def set_distance(self, value: int):
         self.distance = value
     def set_yards_to_goal(self, value: int):
         self.yards_to_goal = value
-    def set_clock_rolling(self, value: bool):
-        self.clock_rolling = value
-    def decrement_home_timeouts(self):
-        if self.home['timeouts'] > 0:
-            self.home['timeouts'] -= 1
+    def stop_clock(self):
+        self.clock_rolling = False
+    def start_clock(self):
+        self.clock_rolling = True
+    def decrement_offense_timeouts(self):
+        if self.get_offense_timeouts() > 0:
+            if self.possession == 'home':
+                self.home['timeouts'] -= 1
+            else:
+                self.away['timeouts'] -= 1
             self.clock_rolling = False
-    def decrement_away_timeouts(self):
-        if self.away['timeouts'] > 0:
-            self.away['timeouts'] -= 1
+    def decrement_defense_timeouts(self):
+        if self.get_defense_timeouts() > 0:
+            if self.possession == 'home':
+                self.away['timeouts'] -= 1
+            else:
+                self.home['timeouts'] -= 1
             self.clock_rolling = False
-    def increment_home_score(self, value: int):
-        self.home['score'] += value
+    def increment_offense_score(self, value: int):
+        self.home['score'] += value if self.possession == 'home' else 0
+        self.away['score'] += value if self.possession == 'away' else 0
         self._update_score_diff()
         self._update_diff_time_ratio()
-    def increment_away_score(self, value: int):
-        self.away['score'] += value
+    def increment_defense_score(self, value: int):
+        self.away['score'] += value if self.possession == 'home' else 0
+        self.home['score'] += value if self.possession == 'away' else 0
         self._update_score_diff()
         self._update_diff_time_ratio()
     def increment_play_count(self):
@@ -124,11 +143,11 @@ class GameState:
     def get_diff_time_ratio(self): return self.diff_time_ratio
     def get_play_count(self): return self.num_plays_on_drive
     def get_offense_is_home(self):
-        return np.select(
+        return int(np.select(
             [self.neutral_site, self.possession == 'home'],
             [0, 1],
             default=-1
-        )
+        ))
     def get_offense_timeouts(self):
         return (
             self.home['timeouts'] 
@@ -142,7 +161,7 @@ class GameState:
             else self.away['score']
         )
     def offense_is_power_five(self):
-        return (
+        return int(
             self.home['is_power_five'] 
             if self.possession == 'home' 
             else self.away['is_power_five']
@@ -172,13 +191,13 @@ class GameState:
             else self.home['timeouts']
         )
     def get_defense_is_home(self):
-        return np.select(
+        return int(np.select(
             [self.neutral_site, self.possession == 'away'],
             [0, 1],
             default=-1
-        )
+        ))
     def defense_is_power_five(self):
-        return (
+        return int(
             self.away['is_power_five'] 
             if self.possession == 'home' 
             else self.home['is_power_five']
@@ -203,7 +222,7 @@ class GameState:
     def get_wind_speed(self): return self.weather['wind_speed']
     def get_precipitation(self): return self.weather['precipitation']
     def get_elevation(self): return self.elevation
-    def clock_is_rolling(self): return self.clock_rolling
+    def clock_is_rolling(self): return int(self.clock_rolling)
 
     # ----- Snapshot -----
     def _cache_initial_state(self):

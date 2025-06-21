@@ -10,7 +10,6 @@ class TryAttemptDecision:
     def predict_xp_attempt_proba(
         self,
         score_diff: int,
-        seconds_remaining: float,
         diff_time_ratio: float,
         pct_game_played: float,
     ):
