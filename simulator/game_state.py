@@ -71,13 +71,11 @@ class GameState:
         offense = self.home if self.possession == 'home' else self.away
         defense = self.away if self.possession == 'home' else self.home
         self.score_diff = offense['score'] - defense['score']
-
     def _update_pct_game_played(self):
         self.pct_game_played = (
             (3600 - self.seconds_remaining) / 3600 
             if self.seconds_remaining is not None else 0
         )
-
     def _update_diff_time_ratio(self):
         self.diff_time_ratio = self.score_diff * np.exp(4 * self.pct_game_played)
 
@@ -87,35 +85,125 @@ class GameState:
         self._update_score_diff()
         self._update_diff_time_ratio()
         self.num_plays_on_drive = 0  # Reset drive
-
-    def set_home_score(self, value: int):
-        self.home['score'] = value
+    def set_down(self, value: int):
+        self.down = value
+    def set_distance(self, value: int):
+        self.distance = value
+    def set_yards_to_goal(self, value: int):
+        self.yards_to_goal = value
+    def set_clock_rolling(self, value: bool):
+        self.clock_rolling = value
+    def decrement_home_timeouts(self):
+        if self.home['timeouts'] > 0:
+            self.home['timeouts'] -= 1
+            self.clock_rolling = False
+    def decrement_away_timeouts(self):
+        if self.away['timeouts'] > 0:
+            self.away['timeouts'] -= 1
+            self.clock_rolling = False
+    def increment_home_score(self, value: int):
+        self.home['score'] += value
         self._update_score_diff()
         self._update_diff_time_ratio()
-
-    def set_away_score(self, value: int):
-        self.away['score'] = value
+    def increment_away_score(self, value: int):
+        self.away['score'] += value
         self._update_score_diff()
         self._update_diff_time_ratio()
-
-    def set_seconds_remaining(self, value: int):
-        self.seconds_remaining = value
-        self._update_pct_game_played()
-        self._update_diff_time_ratio()
-
     def increment_play_count(self):
         self.num_plays_on_drive += 1
+    def decrement_seconds_remaining(self, value: int):
+        if self.seconds_remaining is not None:
+            self.seconds_remaining = max(0, self.seconds_remaining - value)
+            self._update_pct_game_played()
+            self._update_diff_time_ratio()
 
     # ----- Getters -----
     def get_possession(self): return self.possession
-    def get_home_score(self): return self.home['score']
-    def get_away_score(self): return self.away['score']
     def get_score_diff(self): return self.score_diff
     def get_pct_game_played(self): return self.pct_game_played
     def get_diff_time_ratio(self): return self.diff_time_ratio
     def get_play_count(self): return self.num_plays_on_drive
     def get_offense_is_home(self):
-        return 0 if self.neutral_site else int(self.possession == 'home')
+        return np.select(
+            [self.neutral_site, self.possession == 'home'],
+            [0, 1],
+            default=-1
+        )
+    def get_offense_timeouts(self):
+        return (
+            self.home['timeouts'] 
+            if self.possession == 'home' 
+            else self.away['timeouts']
+        )
+    def get_offense_score(self):
+        return (
+            self.home['score'] 
+            if self.possession == 'home' 
+            else self.away['score']
+        )
+    def offense_is_power_five(self):
+        return (
+            self.home['is_power_five'] 
+            if self.possession == 'home' 
+            else self.away['is_power_five']
+        )
+    def get_offense_division(self):
+        return (
+            self.home['division'] 
+            if self.possession == 'home' 
+            else self.away['division']
+        )
+    def get_offense_elo_rating(self):
+        return (
+            self.home['elo_rating'] 
+            if self.possession == 'home' 
+            else self.away['elo_rating']
+        )
+    def get_defense_score(self):
+        return (
+            self.away['score'] 
+            if self.possession == 'home' 
+            else self.home['score']
+        )
+    def get_defense_timeouts(self):
+        return (
+            self.away['timeouts'] 
+            if self.possession == 'home' 
+            else self.home['timeouts']
+        )
+    def get_defense_is_home(self):
+        return np.select(
+            [self.neutral_site, self.possession == 'away'],
+            [0, 1],
+            default=-1
+        )
+    def defense_is_power_five(self):
+        return (
+            self.away['is_power_five'] 
+            if self.possession == 'home' 
+            else self.home['is_power_five']
+        )
+    def get_defense_division(self):
+        return (
+            self.away['division'] 
+            if self.possession == 'home' 
+            else self.home['division']
+        )
+    def get_defense_elo_rating(self):
+        return (
+            self.away['elo_rating'] 
+            if self.possession == 'home' 
+            else self.home['elo_rating']
+        )
+    def get_yards_to_goal(self): return self.yards_to_goal
+    def get_seconds_remaining(self): return self.seconds_remaining
+    def get_down(self): return self.down
+    def get_distance(self): return self.distance
+    def get_temperature(self): return self.weather['temperature']
+    def get_wind_speed(self): return self.weather['wind_speed']
+    def get_precipitation(self): return self.weather['precipitation']
+    def get_elevation(self): return self.elevation
+    def clock_is_rolling(self): return self.clock_rolling
 
     # ----- Snapshot -----
     def _cache_initial_state(self):
