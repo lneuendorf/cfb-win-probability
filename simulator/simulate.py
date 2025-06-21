@@ -47,10 +47,7 @@ class Simulator:
                 self._extra_point_or_two_point_conversion()
             else:
                 raise ValueError(f"Unknown action: {self.next_action}")
-            
-
-            self._extra_point_or_two_point_conversion()
-        
+                    
     def _coin_toss(self):
         self.game_state['possession'] = np.random.choice(
             ['home', 'away'],
@@ -58,9 +55,25 @@ class Simulator:
         )
 
     def _kickoff(self):
-        ytg, seconds_used = self.kickoff_model.predict_kickoff_ytg()
+        '''
+        Simulates a kickoff event in the game. This handles for the probability
+        of an onside kick, the yards to goal (ytg) post kickoff, and
+        whether the receiving team recovers the kickoff.
+        '''
+        ytg, seconds_used, recovered_by = self.kickoff_model.predict_kickoff_ytg(
+            score_diff=self.game_state['score_diff'],
+            pct_game_played=self.game_state['pct_game_played'],
+            diff_time_ratio=self.game_state['diff_time_ratio'],
+            offense_timeouts=self.game_state[self.game_state['possession']]['timeouts'],
+        )
         self.game_state['seconds_remaining'] -= seconds_used
         self.game_state['clock_rolling'] = False
+
+        # Flip possession if the defense (recieving team) recovers the kickoff
+        if recovered_by == 'defense':
+            self.game_state['possession'] = (
+                'away' if self.game_state['possession'] == 'home' else 'home'
+            )
 
         if ytg == 0: # kick-off TD return
             self.game_state[self.game_state['possession']]['score'] += 6
@@ -75,11 +88,10 @@ class Simulator:
         offense = self.game_state['possession']
         defense = 'away' if offense == 'home' else 'home'
         proba_attempt_xp = self.try_attempt_model.predict_xp_attempt_proba(
-            score_diff=(
-                self.game_state[offense]['score'] - 
-                self.game_state[defense]['score']
-            ),
+            score_diff=self.game_state['score_diff'],
             seconds_remaining=self.game_state['seconds_remaining'],
+            diff_time_ratio=self.game_state['diff_time_ratio'],
+            pct_game_played=self.game_state['pct_game_played']
         )
 
         if np.random.rand() < proba_attempt_xp:

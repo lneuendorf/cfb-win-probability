@@ -46,17 +46,17 @@ def simulate_full_game(
             as np.array([win_prob, tie_prob, loss_prob]).
     """
     game_state = GameState(
-        possession=None, # game not started -> coin flip decides possession
+        possession=None,
         home_score=0,
         home_elo_rating=home_elo_rating,
         home_timeouts=3,
         away_score=0,
         away_elo_rating=away_elo_rating,
         away_timeouts=3,
-        seconds_remaining=3600,  # 60 minutes * 60 seconds
-        down=None,  # Not applicable at game start
-        distance=None,  # Not applicable at game start
-        yards_to_goal=None,  # Not applicable at game start
+        seconds_remaining=3600,  
+        down=None,  
+        distance=None, 
+        yards_to_goal=None, 
         temperature=temperature,
         wind_speed=wind_speed,
         precipitation=precipitation,
@@ -65,7 +65,7 @@ def simulate_full_game(
         home_is_power_five=home_is_power_five,
         away_division=away_division,
         away_is_power_five=away_is_power_five,
-        clock_rolling=False  # Clock starts rolling after kickoff
+        clock_rolling=False
     )
     
     outcomes = []
