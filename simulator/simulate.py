@@ -9,6 +9,7 @@ from models.try_attempt import (
     TwoPointConversion
 )
 from models.timeout import Timeout
+from models.penalty import Penalty
 
 # import json; print(json.dumps(self.game_state, indent=2))
 #NOTE: clock stops at 2700, 1800, 900, 120, and 0 seconds remaining
@@ -29,6 +30,7 @@ class Simulator:
         self.extra_point_model = ExtraPoint()
         self.two_point_conversion_model = TwoPointConversion()
         self.timeout_model = Timeout()
+        self.penalty_model = Penalty()
 
     def run(self) -> int:
         """
@@ -45,6 +47,7 @@ class Simulator:
         # Simulate non-overtime quarters
         while self.game_state.get_seconds_remaining() > 0:
             self._timeout()
+            self._penalty()
             if self.next_action == "kickoff":
                 self._kickoff()
             elif self.next_action == "play":
@@ -164,6 +167,48 @@ class Simulator:
                 # Defense calls a timeout
                 self.game_state.decrement_defense_timeouts
                 self.game_state.stop_clock()
-        
-    def _simulate_play(self):
-        pass
+
+    def _penalty(self):
+        """
+        Simulates a penalty event in the game.
+        """
+        yards_lost_offense = self.penalty_model.predict_penalty_yards()
+        yards_lost_defense = self.penalty_model.predict_penalty_yards()
+        current_ytg = self.game_state.get_yards_to_goal()
+
+        if yards_lost_offense > 0:
+            if current_ytg + yards_lost_offense > 100:
+                # Half the distance to the goal penalty
+                penalty_distance = (100 - current_ytg) / 2
+                self.game_state.add_to_yards_to_goal(penalty_distance)
+                self.game_state.add_to_distance(penalty_distance)
+            else:
+                # Regular penalty
+                self.game_state.add_to_yards_to_goal(yards_lost_offense)
+                self.game_state.add_to_distance(yards_lost_offense)
+            if self.penalty_model.offensive_penalty_is_loss_of_down():
+                # Loss of down for the offense
+                if self.game_state.get_down() == 4:
+                    # Turnover on downs
+                    self.game_state.switch_possession()
+                    self.game_state.set_down(1)
+                    self.game_state.set_distance(10)
+                else:
+                    # Just decrement the down
+                    self.game_state.increment_down()
+        if yards_lost_defense > 0:
+            if current_ytg - yards_lost_defense <= 0:
+                # Half the distance to the goal penalty
+                penalty_distance = current_ytg / 2
+                self.game_state.add_to_yards_to_goal(-penalty_distance)
+                self.game_state.add_to_distance(-penalty_distance)
+            else:
+                # Regular penalty
+                self.game_state.add_to_yards_to_goal(-yards_lost_defense)
+                self.game_state.add_to_distance(-yards_lost_defense)
+            
+            if self.penalty_model.defensive_penalty_is_automatic_first_down():
+                # Automatic first down for the offense
+                self.game_state.set_down(1)
+                self.game_state.set_distance(10)
+    

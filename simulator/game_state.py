@@ -96,10 +96,24 @@ class GameState:
         self.num_plays_on_drive = 0
     def set_down(self, value: int):
         self.down = value
+    def increment_down(self):
+        self.down = self.down + 1
+        if self.down > 4:
+            raise ValueError("Down cannot exceed 4")
     def set_distance(self, value: int):
         self.distance = value
+    def add_to_distance(self, value: int):
+        distance = self.distance + value
+        if distance <= 0:
+            # First down
+            self.distance = 10
+            self.down = 1
+        else:
+            self.distance = distance
     def set_yards_to_goal(self, value: int):
         self.yards_to_goal = value
+    def add_to_yards_to_goal(self, value: int):
+        self.yards_to_goal = self.yards_to_goal + value
     def stop_clock(self):
         self.clock_rolling = False
     def start_clock(self):
