@@ -212,3 +212,5 @@ class Simulator:
                 self.game_state.set_down(1)
                 self.game_state.set_distance(10)
     
+    def _simulate_play(self):
+        self.next_action = "kickoff"
