@@ -14,6 +14,7 @@ def simulate_full_game(
     home_is_power_five,
     away_division,
     away_is_power_five,
+    neutral_site=False,
     n_simulations=1000,
 ) -> np.ndarray:
     """
@@ -38,6 +39,7 @@ def simulate_full_game(
         home_is_power_five (bool): Whether the home team is a Power Five team.
         away_division (str): Division of the away team (e.g., "FBS", "FCS").
         away_is_power_five (bool): Whether the away team is a Power Five team.
+        neutral_site (bool): Whether the game is played at a neutral site.
         n_simulations (int): Number of simulations to run.
 
     
@@ -54,9 +56,9 @@ def simulate_full_game(
         away_elo_rating=away_elo_rating,
         away_timeouts=3,
         seconds_remaining=3600,  
-        down=None,  
-        distance=None, 
-        yards_to_goal=None, 
+        down=np.nan,  
+        distance=np.nan, 
+        yards_to_goal=np.nan,
         temperature=temperature,
         wind_speed=wind_speed,
         precipitation=precipitation,
@@ -65,6 +67,7 @@ def simulate_full_game(
         home_is_power_five=home_is_power_five,
         away_division=away_division,
         away_is_power_five=away_is_power_five,
+        neutral_site=neutral_site,
         clock_rolling=False
     )
     
