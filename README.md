@@ -16,10 +16,3 @@ metric ideas:
 
 #TODO
 1. Create tests for each model that simulate based on game state and inspect the output distribution, confirming that it aligns with expectation.
-
-
-data to add
-- team pass-run ratio
-- offense fg attempt rate
-- team level advanced stats (run success rate)
-
