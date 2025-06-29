@@ -75,8 +75,7 @@ class Decision():
             "offense_last6_pass_to_rush_ratio": offense_last6_pass_to_rush_ratio
         }])
         dmatrix = xgb.DMatrix(data)
-        probas = self.first_3_downs_model.predict(dmatrix)
-
+        probas = self.first_3_downs_model.predict(dmatrix)[0]
         action = np.random.choice(
             ['pass', 'run', 'field_goal', 'qb_kneel'], 
             p=probas
@@ -144,7 +143,7 @@ class Decision():
         }])
         
         dmatrix = xgb.DMatrix(data)
-        probas = self.fourth_down_model.predict(dmatrix)
+        probas = self.fourth_down_model.predict(dmatrix)[0]
         action = np.random.choice(['go', 'field_goal', 'punt'], p=probas)
 
         if action == 'go':

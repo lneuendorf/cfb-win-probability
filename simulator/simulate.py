@@ -10,8 +10,8 @@ from models.try_attempt import (
 )
 from models.timeout import Timeout
 from models.penalty import Penalty
+from models.decision import Decision
 
-# import json; print(json.dumps(self.game_state, indent=2))
 #NOTE: clock stops at 2700, 1800, 900, 120, and 0 seconds remaining
 
 class Simulator:
@@ -32,6 +32,7 @@ class Simulator:
         self.two_point_conversion_model = TwoPointConversion()
         self.timeout_model = Timeout()
         self.penalty_model = Penalty()
+        self.decision_model = Decision()
 
     def run(self) -> int:
         """
@@ -59,6 +60,8 @@ class Simulator:
                 self._extra_point_or_two_point_conversion()
             else:
                 raise ValueError(f"Unknown action: {self.next_action}")
+
+        print(f"score: {self.game_state.get_offense_score()} - {self.game_state.get_defense_score()}")
                     
     def _coin_toss(self):
         self.game_state.set_possession(
@@ -222,7 +225,7 @@ class Simulator:
 
         if down <= 3:
             # Predict action for first 3 downs
-            action = self.game_state.predict_first_3_down_action(
+            action = self.decision_model.predict_first_3_downs_decision(
                 offense_timeouts=self.game_state.get_offense_timeouts(),
                 defense_timeouts=self.game_state.get_defense_timeouts(),
                 yards_to_goal=self.game_state.get_yards_to_goal(),
@@ -243,7 +246,7 @@ class Simulator:
                 )
             )
         else:
-            action = self.game_state.predict_4th_down_action(
+            action = self.decision_model.predict_4th_down_decision(
                 yards_to_goal=self.game_state.get_yards_to_goal(),
                 down=down,
                 distance=self.game_state.get_distance(),
@@ -255,7 +258,7 @@ class Simulator:
                 offense_last12_longest_fg=(
                     self.game_state.get_offense_last12_longest_fg()
                 ),
-                offense_last12_total_poe_gaussian=(
+                offense_last12_total_fg_poe_gaussian=(
                     self.game_state.get_offense_last12_total_fg_poe_gaussian()
                 ),
                 temperature=self.game_state.get_temperature(),
@@ -269,7 +272,7 @@ class Simulator:
         if action == "pass":
             self._pass_play()
         elif action == "run":
-            self._run_play(action)
+            self._run_play()
         elif action == "field_goal":
             self._field_goal()
         elif action == "punt":
@@ -278,7 +281,7 @@ class Simulator:
             self._qb_kneel()
 
     def _run_play(self):
-        yards_gained = 3
+        yards_gained = 3.5
         self.game_state.add_rush_yards(yards_gained)
         self.game_state.decrement_seconds_remaining(7)
         self.game_state.start_clock()
@@ -288,6 +291,14 @@ class Simulator:
         self.prev_action = "run_play"
         self.next_action = "play"
 
+        if self.game_state.get_down() == 4:
+            # Turnover on downs
+            self.game_state.switch_possession()
+            self.game_state.set_down(1)
+            self.game_state.set_distance(10)
+            self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
+            self.game_state.stop_clock()
+
         if self.game_state.get_yards_to_goal() <= 0:
             # Touchdown
             self.game_state.increment_offense_score(6)
@@ -296,7 +307,7 @@ class Simulator:
 
     def _pass_play(self):
         pass_completion = np.random.rand() < 0.7  # 70% completion rate
-        yards_gained = 7 if pass_completion else 0
+        yards_gained = 9 if pass_completion else 0
         self.game_state.decrement_seconds_remaining(7)
         self.game_state.add_pass_yards(yards_gained)
         if pass_completion:
@@ -306,9 +317,16 @@ class Simulator:
             self.game_state.add_to_yards_to_goal(-yards_gained)
         else:
             self.game_state.stop_clock()
-        self.game_state.increment_down()
         self.prev_action = "pass_play"
         self.next_action = "play"
+
+        if self.game_state.get_down() == 4:
+            # Turnover on downs
+            self.game_state.switch_possession()
+            self.game_state.set_down(1)
+            self.game_state.set_distance(10)
+            self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
+            self.game_state.stop_clock()
 
         if self.game_state.get_yards_to_goal() <= 0:
             # Touchdown
@@ -347,19 +365,20 @@ class Simulator:
         self.game_state.add_rush_yards(yards_lost)
         self.game_state.decrement_seconds_remaining(3)
         self.game_state.start_clock()
-        self.game_state.increment_down()
         self.game_state.add_to_distance(yards_lost)
         self.game_state.add_to_yards_to_goal(-yards_lost)
         self.prev_action = "qb_kneel"
         self.next_action = "play"
 
-        if self.game_state.get_down() > 4:
+        if self.game_state.get_down() == 4:
             # Turnover on downs
             self.game_state.switch_possession()
             self.game_state.set_down(1)
             self.game_state.set_distance(10)
             self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
             self.game_state.stop_clock()
+        else:
+            self.game_state.increment_down()
 
     def _calculate_clock_runoff(self):
         if self.prev_action == "qb_kneel":

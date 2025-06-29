@@ -184,7 +184,6 @@ class GameState:
         else:
             self.away['rush_yards'] += yards
             self.away['rush_attempts'] += 1
-        self.dow
         self.increment_play_count()
 
     # ----- Getters -----
