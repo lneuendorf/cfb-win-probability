@@ -28,7 +28,7 @@ class Decision():
         wind_speed: float,
         offense_elo: float,
         defense_elo: float,
-        offense_last12_total_poe_gaussian: float,
+        offense_last12_total_fg_poe_gaussian: float,
         offense_last6_pass_to_rush_ratio: float,
     ) -> str:
         """ 
@@ -48,7 +48,7 @@ class Decision():
             wind_speed (float): Wind speed in miles per hour.
             offense_elo (float): ELO rating of the offense team.
             defense_elo (float): ELO rating of the defense team.
-            offense_last12_total_poe_gaussian (float): Total FG points of expected
+            offense_last12_total_fg_poe_gaussian (float): Total FG points of expected
                 efficiency (POE) in last 12 games, with gaussian smoothing.
             offense_last6_pass_to_rush_ratio (float): Ratio of pass to run plays
                 the last 6 games for the offense.  
@@ -71,7 +71,7 @@ class Decision():
             "wind_speed": wind_speed,
             "offense_elo": offense_elo,
             "defense_elo": defense_elo,
-            "offense_last12_total_poe_gaussian": offense_last12_total_poe_gaussian,
+            "offense_last12_total_poe_gaussian": offense_last12_total_fg_poe_gaussian,
             "offense_last6_pass_to_rush_ratio": offense_last6_pass_to_rush_ratio
         }])
         dmatrix = xgb.DMatrix(data)
@@ -93,9 +93,8 @@ class Decision():
         diff_time_ratio: float,
         offense_elo: float,
         defense_elo: float,
-        offense_last6_kicking_pts: float,
         offense_last12_longest_fg: float,
-        offense_last12_total_poe_gaussian: float,
+        offense_last12_total_fg_poe_gaussian: float,
         temperature: float,
         precipitation: float,
         wind_speed: float,
@@ -114,10 +113,9 @@ class Decision():
             diff_time_ratio (float): e^(4 * (3600 - sec_left) / 3600) * score_diff
             offense_elo (float): ELO rating of the offense team.
             defense_elo (float): ELO rating of the defense team.
-            offense_last6_kicking_pts (float): Kick points over last 6 games
             offense_last12_longest_fg (float): Longest field goal made by offense 
                 in last 12 games.
-            offense_last12_total_poe_gaussian (float): Total FG points of expected
+            offense_last12_total_fg_poe_gaussian (float): Total FG points of expected
                 efficiency (POE) in last 12 games, with gaussian smoothing.
             temperature (float): Temperature in degrees Fahrenheit.
             precipitation (float): Precipitation in inches.
@@ -138,9 +136,8 @@ class Decision():
             "down_x_distance": down * distance,
             "offense_elo": offense_elo,
             "defense_elo": defense_elo,
-            "offense_last6_kicking_pts": offense_last6_kicking_pts,
             "offense_last12_longest_fg": offense_last12_longest_fg,
-            "offense_last12_total_poe_gaussian": offense_last12_total_poe_gaussian,
+            "offense_last12_total_poe_gaussian": offense_last12_total_fg_poe_gaussian,
             "temperature": temperature,
             "precipitation": precipitation,
             "wind_speed": wind_speed
