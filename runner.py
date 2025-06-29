@@ -14,6 +14,12 @@ def simulate_full_game(
     home_is_power_five,
     away_division,
     away_is_power_five,
+    home_last12_total_fg_poe_gaussian,
+    home_last12_longest_fg,
+    home_last6_pass_to_rush_ratio,
+    away_last12_total_fg_poe_gaussian,
+    away_last12_longest_fg,
+    away_last6_pass_to_rush_ratio,
     neutral_site=False,
     n_simulations=1000,
 ) -> np.ndarray:
@@ -67,6 +73,12 @@ def simulate_full_game(
         home_is_power_five=home_is_power_five,
         away_division=away_division,
         away_is_power_five=away_is_power_five,
+        home_last12_total_fg_poe_gaussian=home_last12_total_fg_poe_gaussian,
+        home_last12_longest_fg=home_last12_longest_fg,
+        home_last6_pass_to_rush_ratio=home_last6_pass_to_rush_ratio,
+        away_last12_total_fg_poe_gaussian=away_last12_total_fg_poe_gaussian,
+        away_last12_longest_fg=away_last12_longest_fg,
+        away_last6_pass_to_rush_ratio=away_last6_pass_to_rush_ratio,
         neutral_site=neutral_site,
         clock_rolling=False
     )

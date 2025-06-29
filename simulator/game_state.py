@@ -14,6 +14,12 @@ class GameState:
         away_division: str,
         home_is_power_five: bool,
         away_is_power_five: bool,
+        home_last6_pass_to_rush_ratio: float,
+        away_last6_pass_to_rush_ratio: float,
+        home_last12_longest_fg: float,
+        away_last12_longest_fg: float,
+        home_last12_total_fg_poe_gaussian: float,
+        away_last12_total_fg_poe_gaussian: float,
         seconds_remaining: int,
         down: int,
         distance: int,
@@ -32,14 +38,28 @@ class GameState:
             'elo_rating': home_elo_rating,
             'timeouts': home_timeouts,
             'division': home_division,
-            'is_power_five': home_is_power_five
+            'is_power_five': home_is_power_five,
+            'last6_pass_to_rush_ratio': home_last6_pass_to_rush_ratio,
+            'last12_longest_fg': home_last12_longest_fg,
+            'last12_total_fg_poe_gaussian': home_last12_total_fg_poe_gaussian,
+            'pass_yards': 0,
+            'pass_attempts': 0,
+            'rush_yards': 0,
+            'rush_attempts': 0
         }
         self.away = {
             'score': away_score,
             'elo_rating': away_elo_rating,
             'timeouts': away_timeouts,
             'division': away_division,
-            'is_power_five': away_is_power_five
+            'is_power_five': away_is_power_five,
+            'last6_pass_to_rush_ratio': away_last6_pass_to_rush_ratio,
+            'last12_longest_fg': away_last12_longest_fg,
+            'last12_total_fg_poe_gaussian': away_last12_total_fg_poe_gaussian,
+            'pass_yards': 0,
+            'pass_attempts': 0,
+            'rush_yards': 0,
+            'rush_attempts': 0
         }
 
         self.seconds_remaining = seconds_remaining
@@ -149,6 +169,22 @@ class GameState:
             self.seconds_remaining = max(0, self.seconds_remaining - value)
             self._update_pct_game_played()
             self._update_diff_time_ratio()
+    def add_pass_yards(self, yards: int):
+        if self.possession == 'home':
+            self.home['pass_yards'] += yards
+            self.home['pass_attempts'] += 1
+        else:
+            self.away['pass_yards'] += yards
+            self.away['pass_attempts'] += 1
+        self.increment_play_count()
+    def add_rush_yards(self, yards: int):
+        if self.possession == 'home':
+            self.home['rush_yards'] += yards
+            self.home['rush_attempts'] += 1
+        else:
+            self.away['rush_yards'] += yards
+            self.away['rush_attempts'] += 1
+        self.increment_play_count()
 
     # ----- Getters -----
     def get_possession(self): return self.possession
@@ -237,6 +273,48 @@ class GameState:
     def get_precipitation(self): return self.weather['precipitation']
     def get_elevation(self): return self.elevation
     def clock_is_rolling(self): return int(self.clock_rolling)
+    def get_offense_last6_pass_to_rush_ratio(self):
+        return (
+            self.home['last6_pass_to_rush_ratio'] 
+            if self.possession == 'home' 
+            else self.away['last6_pass_to_rush_ratio']
+        )
+    def get_offense_last12_longest_fg(self):
+        return (
+            self.home['last12_longest_fg'] 
+            if self.possession == 'home' 
+            else self.away['last12_longest_fg']
+        )
+    def get_offense_last12_total_fg_poe_gaussian(self):
+        return (
+            self.home['last12_total_fg_poe_gaussian'] 
+            if self.possession == 'home' 
+            else self.away['last12_total_fg_poe_gaussian']
+        )
+    def get_offense_pass_yards(self):
+        return (
+            self.home['pass_yards'] 
+            if self.possession == 'home' 
+            else self.away['pass_yards']
+        )
+    def get_offense_pass_attempts(self):
+        return (
+            self.home['pass_attempts'] 
+            if self.possession == 'home' 
+            else self.away['pass_attempts']
+        )
+    def get_offense_rush_yards(self):
+        return (
+            self.home['rush_yards'] 
+            if self.possession == 'home' 
+            else self.away['rush_yards']
+        )
+    def get_offense_rush_attempts(self):
+        return (
+            self.home['rush_attempts'] 
+            if self.possession == 'home' 
+            else self.away['rush_attempts']
+        )
 
     # ----- Snapshot -----
     def _cache_initial_state(self):

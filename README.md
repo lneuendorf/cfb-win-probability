@@ -15,5 +15,11 @@ metric ideas:
 
 
 #TODO
-1. Create tests for each model that simulate based on game state and inspect the output distribution, confirming that it aligns with expectation.
-
+1. FG Models
+2. Punt Models
+3. Sack Models
+4. Run Models
+5. Pass Models
+6. Time Runoff Logic
+7. Overtime Model
+8. Test bench
