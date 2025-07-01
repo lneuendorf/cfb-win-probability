@@ -349,7 +349,19 @@ class Simulator:
             self.prev_action = "field_goal_blocked"
             self.next_action = "play"
             return
-        made_fg = np.random.rand() < 0.75  # 75% success rate
+        made_fg = self.fg_model.predict_if_field_goal_is_made(
+            yards_to_goal=self.game_state.get_yards_to_goal(),
+            pct_game_played=self.game_state.get_pct_game_played(),
+            score_diff=self.game_state.get_score_diff(),
+            elevation=self.game_state.get_elevation(),
+            offense_elo=self.game_state.get_offense_elo_rating(),
+            temperature=self.game_state.get_temperature(),
+            wind_speed=self.game_state.get_wind_speed(),
+            offense_last12_total_poe_gaussian=(
+                self.game_state.get_offense_last12_total_fg_poe_gaussian()
+            )
+        )
+        
         if made_fg:
             self.game_state.increment_offense_score(3)
             self.prev_action = "field_goal"
