@@ -16,10 +16,18 @@ metric ideas:
 
 #TODO
 1. FG Models
+    - add fg attempt seconds used
+    - add fg block seconds used
+    - set clock rolling or not
 2. Punt Models
 3. Sack Models
 4. Run Models
 5. Pass Models
-6. Time Runoff Logic
+6. Time Runoff Logic between plays if rolling
+7. handle for game stopages (2 minute warn, half, quarters)
 7. Overtime Model
 8. Test bench
+
+Potential bugs
+- distance is less than YTG (goal to go)
+    - e.g. on field goal block return

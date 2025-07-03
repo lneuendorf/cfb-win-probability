@@ -11,6 +11,7 @@ from models.try_attempt import (
 from models.timeout import Timeout
 from models.penalty import Penalty
 from models.decision import Decision
+from models.field_goal import FieldGoal
 
 #NOTE: clock stops at 2700, 1800, 900, 120, and 0 seconds remaining
 
@@ -33,6 +34,7 @@ class Simulator:
         self.timeout_model = Timeout()
         self.penalty_model = Penalty()
         self.decision_model = Decision()
+        self.fg_model = FieldGoal()
 
     def run(self) -> int:
         """
@@ -281,7 +283,7 @@ class Simulator:
             self._qb_kneel()
 
     def _run_play(self):
-        yards_gained = 3.5
+        yards_gained = 4
         self.game_state.add_rush_yards(yards_gained)
         self.game_state.decrement_seconds_remaining(7)
         self.game_state.start_clock()
@@ -311,7 +313,7 @@ class Simulator:
         self.game_state.decrement_seconds_remaining(7)
         self.game_state.add_pass_yards(yards_gained)
         if pass_completion:
-            yards_gained = 7
+            yards_gained = 6
             self.game_state.start_clock()
             self.game_state.add_to_distance(-yards_gained)
             self.game_state.add_to_yards_to_goal(-yards_gained)
@@ -335,20 +337,62 @@ class Simulator:
             self.next_action = "extra_point_or_two_point_conversion"
 
     def _field_goal(self):
-        made_fg = np.random.rand() < 0.75  # 75% success rate
-        if made_fg:
-            self.game_state.increment_offense_score(3)
-            self.prev_action = "field_goal"
-            self.next_action = "kickoff"
-        else:
+        fg_blocked = self.fg_model.predict_if_field_goal_is_blocked(
+            kick_distance=self.game_state.get_yards_to_goal() + 17
+        )
+        if fg_blocked:
+            # Field goal blocked
+            yards_gained, seconds_used = (
+                self.fg_model.predict_yards_gained_if_field_goal_blocked(
+                    yards_to_goal=self.game_state.get_yards_to_goal(),
+                    offense_elo=self.game_state.get_offense_elo_rating(),
+                    defense_elo=self.game_state.get_defense_elo_rating()
+                )
+            )
+            self.game_state.decrement_seconds_remaining(seconds_used)
+            self.game_state.stop_clock()
+            ytg = 100 - self.game_state.get_yards_to_goal() - yards_gained
             self.game_state.switch_possession()
-            self.game_state.set_down(1)
-            self.game_state.set_distance(10)
-            self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
-            self.prev_action = "field_goal_miss"
-            self.next_action = "play"
-        self.game_state.decrement_seconds_remaining(7)
-        self.game_state.stop_clock()
+            if ytg <= 0:
+                # Touchdown on blocked field goal
+                self.game_state.increment_defense_score(6)
+                self.prev_action = "field_goal_blocked_td"
+                self.next_action = "extra_point_or_two_point_conversion"
+            else:
+                # Field goal blocked but not a touchdown
+                self.game_state.set_down(1)
+                self.game_state.set_distance(min(10, ytg))
+                self.game_state.set_yards_to_goal(ytg)
+                self.prev_action = "field_goal_blocked"
+                self.next_action = "play"
+        else:
+            # Predict if the field goal is made
+            made_fg, seconds_used = self.fg_model.predict_if_field_goal_is_made(
+                yards_to_goal=self.game_state.get_yards_to_goal(),
+                pct_game_played=self.game_state.get_pct_game_played(),
+                score_diff=self.game_state.get_score_diff(),
+                elevation=self.game_state.get_elevation(),
+                offense_elo=self.game_state.get_offense_elo_rating(),
+                temperature=self.game_state.get_temperature(),
+                wind_speed=self.game_state.get_wind_speed(),
+                offense_last12_total_poe_gaussian=(
+                    self.game_state.get_offense_last12_total_fg_poe_gaussian()
+                )
+            )
+            self.game_state.decrement_seconds_remaining(seconds_used)
+            self.game_state.stop_clock()
+            
+            if made_fg:
+                self.game_state.increment_offense_score(3)
+                self.prev_action = "field_goal"
+                self.next_action = "kickoff"
+            else:
+                self.game_state.switch_possession()
+                self.game_state.set_down(1)
+                self.game_state.set_distance(10)
+                self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
+                self.prev_action = "field_goal_miss"
+                self.next_action = "play"
 
     def _punt(self):
         self.game_state.decrement_seconds_remaining(5)
