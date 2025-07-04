@@ -108,29 +108,29 @@ class FieldGoal():
         """
         min_yards_gained = -yards_to_goal + 1 # 99 yards to goal at worst
         max_yards_gained = 100 - yards_to_goal # touchdown at best
+        input_data = pd.DataFrame({
+            'yards_to_goal': [yards_to_goal],
+            'offense_elo': [offense_elo],
+            'defense_elo': [defense_elo],
+        })
+        dmatrix = xgb.DMatrix(input_data)
         yards_gained_dict = {}
         for q, model in self.blocked_fg_yards_gained.items():
-            input_data = pd.DataFrame({
-                'yards_to_goal': [yards_to_goal],
-                'offense_elo': [offense_elo],
-                'defense_elo': [defense_elo],
-            })
-            dmatrix = xgb.DMatrix(input_data)
             yards_gained_dict[q] = model.predict(dmatrix)[0]
         
         # Sample from triangular distribution using the quantiles
-        yards_gained = np.random.triangular(
+        yards_gained = int(np.random.triangular(
             np.clip(yards_gained_dict['q025'], min_yards_gained, max_yards_gained),
             np.clip(yards_gained_dict['q50'], min_yards_gained, max_yards_gained),
             np.clip(yards_gained_dict['q975'], min_yards_gained, max_yards_gained),
             size=1
-        )[0]
+        )[0])
 
         base_time = 5
         extra_seconds = int(abs(yards_gained) // 10)
         time_used = base_time + extra_seconds
 
-        return int(yards_gained), time_used
+        return yards_gained, time_used
 
     def _pressure_rating(
         self,

@@ -12,6 +12,7 @@ from models.timeout import Timeout
 from models.penalty import Penalty
 from models.decision import Decision
 from models.field_goal import FieldGoal
+from models.punt import Punt
 
 #NOTE: clock stops at 2700, 1800, 900, 120, and 0 seconds remaining
 
@@ -35,6 +36,7 @@ class Simulator:
         self.penalty_model = Penalty()
         self.decision_model = Decision()
         self.fg_model = FieldGoal()
+        self.punt_model = Punt()
 
     def run(self) -> int:
         """
@@ -298,7 +300,9 @@ class Simulator:
             self.game_state.switch_possession()
             self.game_state.set_down(1)
             self.game_state.set_distance(10)
-            self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
+            self.game_state.set_yards_to_goal(
+                100 - self.game_state.get_yards_to_goal()
+            )
             self.game_state.stop_clock()
 
         if self.game_state.get_yards_to_goal() <= 0:
@@ -327,7 +331,9 @@ class Simulator:
             self.game_state.switch_possession()
             self.game_state.set_down(1)
             self.game_state.set_distance(10)
-            self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
+            self.game_state.set_yards_to_goal(
+                100 - self.game_state.get_yards_to_goal()
+            )
             self.game_state.stop_clock()
 
         if self.game_state.get_yards_to_goal() <= 0:
@@ -390,19 +396,78 @@ class Simulator:
                 self.game_state.switch_possession()
                 self.game_state.set_down(1)
                 self.game_state.set_distance(10)
-                self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
+                self.game_state.set_yards_to_goal(
+                    100 - self.game_state.get_yards_to_goal()
+                )
                 self.prev_action = "field_goal_miss"
                 self.next_action = "play"
 
     def _punt(self):
-        self.game_state.decrement_seconds_remaining(5)
-        self.game_state.switch_possession()
-        self.game_state.set_down(1)
-        self.game_state.set_distance(10)
-        self.game_state.set_yards_to_goal(80)
-        self.game_state.stop_clock()
-        self.prev_action = "punt"
-        self.next_action = "play"
+        punt_blocked = self.punt_model.predict_if_punt_is_blocked(
+            punt_team_ytg=self.game_state.get_yards_to_goal(),
+        )
+        
+        if punt_blocked:
+            # Punt blocked
+            yards_gained, seconds_used = (
+                self.punt_model.predict_yards_gained_if_punt_blocked(
+                    yards_to_goal=self.game_state.get_yards_to_goal(),
+                    offense_elo=self.game_state.get_offense_elo_rating(),
+                    defense_elo=self.game_state.get_defense_elo_rating()
+                )
+            )
+            self.game_state.decrement_seconds_remaining(seconds_used)
+            self.game_state.stop_clock()
+            ytg = 100 - self.game_state.get_yards_to_goal() - yards_gained
+            if ytg <= 0:
+                # Touchdown (70%) or safety (30%) on blocked punt
+                is_td = np.random.rand() < 0.7
+                if is_td:
+                    self.game_state.increment_defense_score(6)
+                    self.game_state.switch_possession()
+                    self.prev_action = "punt_blocked_td"
+                    self.next_action = "extra_point_or_two_point_conversion"
+                else:
+                    # Safety on blocked punt
+                    self.game_state.increment_defense_score(2)
+                    # Defense gets the ball -> dont switch possession
+                    self.prev_action = "punt_blocked_safety"
+                    self.next_action = "kickoff"
+            else:
+                # Punt blocked but not a touchdown
+                self.game_state.switch_possession()
+                self.game_state.set_down(1)
+                self.game_state.set_distance(min(10, ytg))
+                self.game_state.set_yards_to_goal(ytg)
+                self.prev_action = "punt_blocked"
+                self.next_action = "play"
+        else:
+            # Predict yards gained on punt
+            receiving_ytg, seconds_used = (
+                self.punt_model.predict_yards_gained_on_punt(
+                    yards_to_goal=self.game_state.get_yards_to_goal(),
+                    offense_elo=self.game_state.get_offense_elo_rating(),
+                    defense_elo=self.game_state.get_defense_elo_rating(),
+                    elevation=self.game_state.get_elevation(),
+                    temperature=self.game_state.get_temperature(),
+                    wind_speed=self.game_state.get_wind_speed()
+                )
+            )
+            self.game_state.decrement_seconds_remaining(seconds_used)
+            self.game_state.stop_clock()
+            self.game_state.switch_possession()
+            if receiving_ytg <= 0:
+                # Punt return touchdown
+                self.game_state.increment_offense_score(6)
+                self.prev_action = "punt_return_td"
+                self.next_action = "extra_point_or_two_point_conversion"
+            else:
+                # Regular punt return
+                self.game_state.set_down(1)
+                self.game_state.set_distance(min(10, receiving_ytg))
+                self.game_state.set_yards_to_goal(100 - receiving_ytg)
+                self.prev_action = "punt_return"
+                self.next_action = "play"
 
     def _qb_kneel(self):
         yards_lost = -1
@@ -419,7 +484,9 @@ class Simulator:
             self.game_state.switch_possession()
             self.game_state.set_down(1)
             self.game_state.set_distance(10)
-            self.game_state.set_yards_to_goal(100 - self.game_state.get_yards_to_goal())
+            self.game_state.set_yards_to_goal(
+                100 - self.game_state.get_yards_to_goal()
+            )
             self.game_state.stop_clock()
         else:
             self.game_state.increment_down()

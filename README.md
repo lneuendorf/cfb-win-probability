@@ -15,10 +15,6 @@ metric ideas:
 
 
 #TODO
-1. FG Models
-    - add fg attempt seconds used
-    - add fg block seconds used
-    - set clock rolling or not
 2. Punt Models
 3. Sack Models
 4. Run Models
