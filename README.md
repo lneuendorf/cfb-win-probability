@@ -15,15 +15,6 @@ metric ideas:
 
 
 #TODO
-4. fix improper sorting of team stats. should be like
-team_stats = (
-    team_stats
-    .sort_values(
-        by=['team_id', 'season', 'season_type', 'week'], 
-        ignore_index=True, 
-        ascending=[True, True, False, True]
-    )
-)
 4. Run Models
 5. Pass Models
 6. Time Runoff Logic between plays if rolling
@@ -34,3 +25,7 @@ team_stats = (
 Potential bugs
 - distance is less than YTG (goal to go)
     - e.g. on field goal block return
+
+Future improvements:
+- incoperate in game stats into the models? (total rush yards, ...)
+- better modeling of penalties (currently you do not model specifically for pre and pos snap penalties, and you disclude penalty plays from run and pass models)
