@@ -14,9 +14,13 @@ simulate_full_game(
     home_last12_total_fg_poe_gaussian=0.5,
     home_last12_longest_fg=50.0,
     home_last6_pass_to_rush_ratio=0.6,
+    home_last6_offense_sacks_allowed_per_game=1.5,
+    home_last6_defense_sacks_per_game=2.0,
     away_last12_total_fg_poe_gaussian=0.4,
     away_last12_longest_fg=45.0,
     away_last6_pass_to_rush_ratio=0.5,
+    away_last6_offense_sacks_allowed_per_game=1.2,
+    away_last6_defense_sacks_per_game=1.8,
     elevation=500.0,
     neutral_site=False,
 )

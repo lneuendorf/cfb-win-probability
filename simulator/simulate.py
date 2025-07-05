@@ -13,6 +13,7 @@ from models.penalty import Penalty
 from models.decision import Decision
 from models.field_goal import FieldGoal
 from models.punt import Punt
+from models.sack import Sack
 
 #NOTE: clock stops at 2700, 1800, 900, 120, and 0 seconds remaining
 
@@ -37,6 +38,7 @@ class Simulator:
         self.decision_model = Decision()
         self.fg_model = FieldGoal()
         self.punt_model = Punt()
+        self.sack_model = Sack()
 
     def run(self) -> int:
         """
@@ -312,6 +314,123 @@ class Simulator:
             self.next_action = "extra_point_or_two_point_conversion"
 
     def _pass_play(self):
+        sack = self.sack_model.predict_if_sack(
+            yards_to_goal=self.game_state.get_yards_to_goal(),
+            down=self.game_state.get_down(),
+            distance=self.game_state.get_distance(),
+            diff_time_ratio=self.game_state.get_diff_time_ratio(),
+            elo_diff=self.game_state.get_elo_diff(),
+            last6_offense_sacks_allowed_per_game=(
+                self.game_state.get_offense_last6_sacks_allowed_per_game()
+            ),
+            last6_defense_sacks_per_game=(
+                self.game_state.get_defense_last6_sacks_per_game()
+            )
+        )
+        ytg = self.game_state.get_yards_to_goal()
+        down = self.game_state.get_down()
+        if sack:
+            sack_fumble = self.sack_model.predict_if_sack_resulted_in_fumble()
+            if sack_fumble:
+                # Sack resulted in a fumble
+                is_offense_recovery = (
+                    self.sack_model.predict_sack_fumble_recovery_team()
+                )
+                yards_lost, seconds_used = (
+                    self.sack_model.predict_sack_fumble_recovery_yards_lost(
+                        is_offense_recovery=is_offense_recovery,
+                        yards_to_goal=self.game_state.get_yards_to_goal()
+                    )
+                )
+                self.game_state.decrement_seconds_remaining(seconds_used)
+                if is_offense_recovery:
+                    # Offense recovers the fumble
+                    if 100 - ytg - yards_lost <= 0:
+                        # Safety on fumble recovery
+                        self.game_state.stop_clock()
+                        self.game_state.increment_defense_score(2)
+                        # possession stays with offense for kickoff
+                        self.prev_action = "safety"
+                        self.next_action = "kickoff"
+                    elif down == 4:
+                        # Turnover on downs after fumble recovery
+                        self.game_state.switch_possession()
+                        self.game_state.set_down(1)
+                        self.game_state.set_distance(
+                            min(10, 100 - ytg - yards_lost)
+                        )
+                        self.game_state.set_yards_to_goal(
+                            100 - self.game_state.get_yards_to_goal() - yards_lost
+                        )
+                        self.game_state.stop_clock()
+                        self.prev_action = "sack_turnover"
+                        self.next_action = "play"
+                    else:
+                        # Regular fumble recovery
+                        self.game_state.start_clock()
+                        self.game_state.add_to_distance(yards_lost)
+                        self.game_state.add_to_yards_to_goal(yards_lost)
+                        self.game_state.increment_down()
+                        self.prev_action = "sack"
+                        self.next_action = "play"
+                else:
+                    # Defense recovers the fumble
+                    if 100 - ytg - yards_lost <= 0:
+                        # Touchdown on fumble recovery
+                        self.game_state.increment_defense_score(6)
+                        self.game_state.stop_clock()
+                        self.game_state.switch_possession()
+                        self.prev_action = "sack_fumble_td"
+                        self.next_action = "extra_point_or_two_point_conversion"
+                    else:
+                        # Regular fumble recovery by defense
+                        self.game_state.switch_possession()
+                        self.game_state.set_down(1)
+                        self.game_state.set_distance(
+                            min(10, 100 - ytg - yards_lost)
+                        )
+                        self.game_state.set_yards_to_goal(
+                            100 - self.game_state.get_yards_to_goal() - yards_lost
+                        )
+                        self.game_state.stop_clock()
+                        self.prev_action = "sack_fumble_recovery"
+                        self.next_action = "play"
+            else:
+                # Sack without fumble
+                yards_lost, seconds_used = (
+                    self.sack_model.predict_sack_yards_lost(
+                        yards_to_goal=self.game_state.get_yards_to_goal()
+                    )
+                )
+                self.game_state.decrement_seconds_remaining(seconds_used)
+                if 100 - ytg - yards_lost <= 0:
+                    # Safety on sack
+                    self.game_state.increment_defense_score(2)
+                    self.game_state.stop_clock()
+                    self.prev_action = "sack_safety"
+                    self.next_action = "kickoff"
+                elif down == 4:
+                    # Turnover on downs after sack
+                    self.game_state.switch_possession()
+                    self.game_state.set_down(1)
+                    self.game_state.set_distance(
+                        min(10, 100 - ytg - yards_lost)
+                    )
+                    self.game_state.set_yards_to_goal(
+                        100 - self.game_state.get_yards_to_goal() - yards_lost
+                    )
+                    self.game_state.stop_clock()
+                    self.prev_action = "sack_turnover"
+                    self.next_action = "play"
+                else:
+                    # Regular sack
+                    self.game_state.start_clock()
+                    self.game_state.add_to_distance(yards_lost)
+                    self.game_state.add_to_yards_to_goal(yards_lost)
+                    self.game_state.increment_down()
+                    self.prev_action = "sack"
+                    self.next_action = "play"
+            return
         pass_completion = np.random.rand() < 0.7  # 70% completion rate
         yards_gained = 9 if pass_completion else 0
         self.game_state.decrement_seconds_remaining(7)
@@ -444,7 +563,7 @@ class Simulator:
         else:
             # Predict yards gained on punt
             receiving_ytg, seconds_used = (
-                self.punt_model.predict_yards_gained_on_punt(
+                self.punt_model.predict_punt_receiving_yards(
                     yards_to_goal=self.game_state.get_yards_to_goal(),
                     offense_elo=self.game_state.get_offense_elo_rating(),
                     defense_elo=self.game_state.get_defense_elo_rating(),
@@ -465,7 +584,7 @@ class Simulator:
                 # Regular punt return
                 self.game_state.set_down(1)
                 self.game_state.set_distance(min(10, receiving_ytg))
-                self.game_state.set_yards_to_goal(100 - receiving_ytg)
+                self.game_state.set_yards_to_goal(receiving_ytg)
                 self.prev_action = "punt_return"
                 self.next_action = "play"
 

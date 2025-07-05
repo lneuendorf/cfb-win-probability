@@ -15,8 +15,15 @@ metric ideas:
 
 
 #TODO
-2. Punt Models
-3. Sack Models
+4. fix improper sorting of team stats. should be like
+team_stats = (
+    team_stats
+    .sort_values(
+        by=['team_id', 'season', 'season_type', 'week'], 
+        ignore_index=True, 
+        ascending=[True, True, False, True]
+    )
+)
 4. Run Models
 5. Pass Models
 6. Time Runoff Logic between plays if rolling

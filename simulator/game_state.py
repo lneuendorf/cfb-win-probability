@@ -20,6 +20,10 @@ class GameState:
         away_last12_longest_fg: float,
         home_last12_total_fg_poe_gaussian: float,
         away_last12_total_fg_poe_gaussian: float,
+        home_last6_offense_sacks_allowed_per_game: float,
+        away_last6_offense_sacks_allowed_per_game: float,
+        home_last6_defense_sacks_per_game: float,
+        away_last6_defense_sacks_per_game: float,
         seconds_remaining: int,
         down: int,
         distance: int,
@@ -42,6 +46,9 @@ class GameState:
             'last6_pass_to_rush_ratio': home_last6_pass_to_rush_ratio,
             'last12_longest_fg': home_last12_longest_fg,
             'last12_total_fg_poe_gaussian': home_last12_total_fg_poe_gaussian,
+            'last6_sacks_offense_allowed_per_game': 
+                home_last6_offense_sacks_allowed_per_game,
+            'last6_defense_sacks_per_game': home_last6_defense_sacks_per_game,
             'pass_yards': 0,
             'pass_attempts': 0,
             'rush_yards': 0,
@@ -56,6 +63,9 @@ class GameState:
             'last6_pass_to_rush_ratio': away_last6_pass_to_rush_ratio,
             'last12_longest_fg': away_last12_longest_fg,
             'last12_total_fg_poe_gaussian': away_last12_total_fg_poe_gaussian,
+            'last6_sacks_offense_allowed_per_game': 
+                away_last6_offense_sacks_allowed_per_game,
+            'last6_defense_sacks_per_game': away_last6_defense_sacks_per_game,
             'pass_yards': 0,
             'pass_attempts': 0,
             'rush_yards': 0,
@@ -314,6 +324,24 @@ class GameState:
             self.home['rush_attempts'] 
             if self.possession == 'home' 
             else self.away['rush_attempts']
+        )
+    def get_defense_last6_sacks_per_game(self):
+        return (
+            self.away['last6_defense_sacks_per_game'] 
+            if self.possession == 'home' 
+            else self.home['last6_defense_sacks_per_game']
+        )
+    def get_offense_last6_sacks_allowed_per_game(self):
+        return (
+            self.home['last6_sacks_offense_allowed_per_game'] 
+            if self.possession == 'home' 
+            else self.away['last6_sacks_offense_allowed_per_game']
+        )
+    def get_elo_diff(self):
+        return (
+            self.home['elo_rating'] - self.away['elo_rating']
+            if self.possession == 'home'
+            else self.away['elo_rating'] - self.home['elo_rating']
         )
 
     # ----- Snapshot -----

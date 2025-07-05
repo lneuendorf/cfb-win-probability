@@ -17,9 +17,13 @@ def simulate_full_game(
     home_last12_total_fg_poe_gaussian,
     home_last12_longest_fg,
     home_last6_pass_to_rush_ratio,
+    home_last6_offense_sacks_allowed_per_game,
+    home_last6_defense_sacks_per_game,
     away_last12_total_fg_poe_gaussian,
     away_last12_longest_fg,
     away_last6_pass_to_rush_ratio,
+    away_last6_offense_sacks_allowed_per_game,
+    away_last6_defense_sacks_per_game,
     neutral_site=False,
     n_simulations=1000,
 ) -> np.ndarray:
@@ -76,9 +80,15 @@ def simulate_full_game(
         home_last12_total_fg_poe_gaussian=home_last12_total_fg_poe_gaussian,
         home_last12_longest_fg=home_last12_longest_fg,
         home_last6_pass_to_rush_ratio=home_last6_pass_to_rush_ratio,
+        home_last6_offense_sacks_allowed_per_game=
+            home_last6_offense_sacks_allowed_per_game,
+        home_last6_defense_sacks_per_game=home_last6_defense_sacks_per_game,
         away_last12_total_fg_poe_gaussian=away_last12_total_fg_poe_gaussian,
         away_last12_longest_fg=away_last12_longest_fg,
         away_last6_pass_to_rush_ratio=away_last6_pass_to_rush_ratio,
+        away_last6_offense_sacks_allowed_per_game=
+            away_last6_offense_sacks_allowed_per_game,
+        away_last6_defense_sacks_per_game=away_last6_defense_sacks_per_game,
         neutral_site=neutral_site,
         clock_rolling=False
     )
