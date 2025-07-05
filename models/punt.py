@@ -70,7 +70,12 @@ class Punt():
         receiving_ytg = {}
         for q, model in self.punt_receiving_ytg.items():
             receiving_ytg[q] = model.predict(dmatrix)[0]
-        
+
+        if receiving_ytg['q025'] > receiving_ytg['q50']:
+            receiving_ytg['q025'] = receiving_ytg['q50']
+        if receiving_ytg['q975'] < receiving_ytg['q50']:
+            receiving_ytg['q975'] = receiving_ytg['q50']
+            
         # Sample from triangular distribution
         receiving_ytg_sample = int(np.random.triangular(
             np.clip(receiving_ytg['q025'], min_ytg, max_ytg),
