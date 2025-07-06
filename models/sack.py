@@ -108,7 +108,7 @@ class Sack():
         """
         max_yards_lost = 100 - yards_to_goal
         if is_offense_recovery:
-            yards_lost = int(min(
+            yards_lost = int(max(
                 np.random.choice(
                     self.sack_fumble_yards_lost_offense_dist['yards_lost'],
                     p=self.sack_fumble_yards_lost_offense_dist['proportion']
@@ -116,7 +116,7 @@ class Sack():
                 max_yards_lost
             ))
         else:
-            yards_lost = int(min(
+            yards_lost = int(max(
                 np.random.choice(
                     self.sack_fumble_yards_lost_defense_dist['yards_lost'],
                     p=self.sack_fumble_yards_lost_defense_dist['proportion']
@@ -147,7 +147,7 @@ class Sack():
                 for the sack in seconds.
         """
         max_yards_lost = 100 - yards_to_goal
-        yards_lost = int(min(
+        yards_lost = int(max(
             np.random.choice(
                 self.normal_sack_yards_lost_dist['yards_lost'],
                 p=self.normal_sack_yards_lost_dist['percentage']

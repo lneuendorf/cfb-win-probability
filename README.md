@@ -16,6 +16,9 @@ metric ideas:
 
 #TODO
 4. Run Models
+    - add time used component
+    - add logic to simulator.py
+    - implement model predicting if there was fumble (likely base probability)
 5. Pass Models
 6. Time Runoff Logic between plays if rolling
 7. handle for game stopages (2 minute warn, half, quarters)
