@@ -16,10 +16,20 @@ metric ideas:
 
 #TODO
 4. Run Models
+    - build super basic logicst regression WP model
+    - replace diff time ratio in model with it
     - add time used component
     - add logic to simulator.py
+    - generate ryoe plots for x and linkedin
     - implement model predicting if there was fumble (likely base probability)
 5. Pass Models
+    outcome variables:
+        - pass outcome: complete/incomplete/intecepted
+        - pass interception -> return yards
+        - pass complete -> yards gained
+        - pass complete fumble?
+        - pass complete fumble recovery team
+        - pass complete fumble recovery yardline
 6. Time Runoff Logic between plays if rolling
 7. handle for game stopages (2 minute warn, half, quarters)
 7. Overtime Model
